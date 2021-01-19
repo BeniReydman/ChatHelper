@@ -18,6 +18,10 @@ import java.io.File;
 import java.io.FileNotFoundException; 
 import java.util.Scanner;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import commands.*;
 
@@ -44,36 +48,7 @@ public class HelperMain {
         CommandBuilder.buildCommands(this);
         
         // Read in .txt file
-        try {
-        	// Initialize
-        	String regex;
-        	String response;
-        	
-        	// File Reading Code
-        	File myObj = new File("database/chat_regex.txt");
-        	Scanner myReader = new Scanner(myObj);
-            while (myReader.hasNextLine()) {
-            	// Regular expression line
-            	regex = myReader.nextLine();
-            	
-            	// Check if response exists
-            	if(!myReader.hasNextLine()) {
-            		System.out.println("Incorrect file format.");
-            		regexResponses.clear();
-            		break;
-            	}
-            	
-            	// Response expression line
-            	response = myReader.nextLine();
-            	
-            	// Place into map
-            	regexResponses.put(regex, response);
-            }
-            myReader.close();
-        } catch (FileNotFoundException e) {
-        	System.out.println("An error occurred.");
-        	e.printStackTrace();
-        }
+        readFile();
     }
 
     @Listener
@@ -84,11 +59,68 @@ public class HelperMain {
     	taskBuilder.execute(new Runnable() {
             public void run() {
             	// Get Text
-                Text message = event.getMessage().toText();
-            	Broadcast.broadcast("You wrote: " + message.toPlain());
-            	System.out.println("Executed broadcast.");
+                String message = event.getRawMessage().toPlain();
+                
+                String result = checkMessage(message);
+                if(result != "") {
+                	Broadcast.broadcast(result);
+                }
             }
         }).submit(this);
     }
 
+    public String checkMessage(String message)
+    {
+    	// Initialize
+    	String toReturn = "";
+    	
+    	// Get Iterator
+        Iterator mapIterator = regexResponses.keySet().iterator();
+        
+        // Iterate and check if text matches any regex patterns
+        while(mapIterator.hasNext())
+        {
+        	String regex = (String) mapIterator.next();
+    		Pattern checkRegex = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+    		Matcher regexMatcher = checkRegex.matcher(message);
+    		if (regexMatcher.find()) 
+    		{
+    			toReturn = regexResponses.get(regex);
+    		}
+        }
+        
+        return toReturn;
+    }
+    
+    public void readFile()
+    {
+    	try {
+        	// Initialize
+        	String line;
+        	String [] lines;
+        	
+        	// File Reading Code
+        	File myObj = new File("database/chat_regex.txt");
+        	Scanner myReader = new Scanner(myObj);
+            while (myReader.hasNextLine()) {
+            	// Regular expression line
+            	line = myReader.nextLine();
+            	lines = line.split("::");
+            	
+            	// Check if correct
+            	if(lines.length != 2)
+            	{
+            		System.out.println("[ChatHelper] Incorrect formatting.");
+            		break;
+            	}
+            	
+            	// Place into map
+            	regexResponses.put(lines[0], lines[1]);
+            }
+            myReader.close();
+        } catch (FileNotFoundException e) {
+        	System.out.println("An error occurred.");
+        	e.printStackTrace();
+        }
+    }
 }
