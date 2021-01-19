@@ -4,12 +4,15 @@ import com.google.inject.Inject;
 import commands.CommandBuilder;
 
 import org.slf4j.Logger;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.message.MessageChannelEvent;
 import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.scheduler.Scheduler;
 import org.spongepowered.api.scheduler.Task;
+import org.spongepowered.api.text.Text;
 
 import java.io.File;  
 import java.io.FileNotFoundException; 
@@ -21,8 +24,7 @@ import commands.*;
 @Plugin(id = "chathelper", name = "ChatHelper", version = "1.0", description = "Chat Helper for Minecraft")
 public class HelperMain {
 	
-	private Task.Builder taskBuilder = Task.builder();
-	HashMap<String, String> regexResponses = new HashMap<String, String>();
+	private HashMap<String, String> regexResponses = new HashMap<String, String>();
 
     @Inject
     private Logger logger;
@@ -73,16 +75,20 @@ public class HelperMain {
         	e.printStackTrace();
         }
     }
-    
+
     @Listener
     public void onChat(MessageChannelEvent.Chat event) {
     	// Put onto scheduler
-    	taskBuilder.execute(
-    		    () -> {
-    		    	String message = event.getRawMessage().toPlain();
-    		    	Broadcast.broadcast("You wrote: " + message);
-    		    }
-    		);
+    	Scheduler scheduler = Sponge.getScheduler();
+    	Task.Builder taskBuilder = scheduler.createTaskBuilder();
+    	taskBuilder.execute(new Runnable() {
+            public void run() {
+            	// Get Text
+                Text message = event.getMessage().toText();
+            	Broadcast.broadcast("You wrote: " + message.toPlain());
+            	System.out.println("Executed broadcast.");
+            }
+        }).submit(this);
     }
 
 }
