@@ -8,13 +8,9 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.plugin.Plugin;
-import java.sql.*;
-import db_handler.DBHandler;
-import db_entities.*;
 
-
-@Plugin(id = "gymplugin", name = "GymPlugin", version = "1.0", description = "Gym Leader Plugin for Pixelmon")
-public class GymMain {
+@Plugin(id = "chathelper", name = "ChatHelper", version = "1.0", description = "Chat Helper for Minecraft")
+public class HelperMain {
 
     @Inject
     private Logger logger;
@@ -24,19 +20,12 @@ public class GymMain {
 
     @Listener
     public void onServerStart(GameStartedServerEvent event) {
-        logger.info("GymPlugin is running.");
+        logger.info("ChatHelper is running.");
     }
 
     @Listener
     public void onInitialization(GameInitializationEvent event) {
-    	// Connect to databases
-    	if(!DBHandler.connect())
-    	{
-    		// If connection fails, database does not exist
-    		DBHandler.createNewDatabase();
-    		DBHandler.createTables();
-    	}
-    	
+    	// Add Commands
         CommandBuilder.buildCommands(this);
     }
 

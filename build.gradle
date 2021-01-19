@@ -8,7 +8,7 @@ compileJava.options.encoding = 'UTF-8'
 
 group = 'com.gym'
 version = '1.0.0'
-description = 'Gym Leader Plugin for Pixelmon'
+description = 'Chat Helper for Minecraft'
 
 repositories {
     jcenter()
